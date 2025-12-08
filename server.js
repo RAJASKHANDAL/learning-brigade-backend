@@ -12,17 +12,17 @@ app.use(
   cors({
     origin: [
       "http://localhost:3000",
-      "https://your-frontend-domain.com",   // later add your actual domain
+      "https://learning-brigade-frontend.vercel.app",
     ],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    exposedHeaders: ["Authorization"],
+    methods: "GET,POST,PUT,DELETE",
     credentials: true,
   })
 );
 
+
 // Allow preflight
 
+app.options("*", cors());
 
 
 // JSON Parser

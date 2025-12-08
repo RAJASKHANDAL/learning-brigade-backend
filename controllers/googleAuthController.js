@@ -3,50 +3,38 @@ const jwt = require("jsonwebtoken");
 const admin = require("../config/firebaseAdmin");
 
 exports.googleAuth = async (req, res) => {
-  try {
-    const { token } = req.body;
+    try {
+        const { token } = req.body;
+        
+        // Firebase verify
+        const decoded = await admin.auth().verifyIdToken(token);
 
-    // Verify Firebase token
-    const decoded = await admin.auth().verifyIdToken(token);
-    const { email, name } = decoded;
+        // Check if user exists
+        let user = await User.findOne({ email: decoded.email });
 
-    // Find or create user
-    let user = await User.findOne({ email });
+        if (!user) {
+            user = await User.create({
+                name: decoded.name || decoded.email.split("@")[0],
+                email: decoded.email,
+                role: null, // no role yet
+                profileCompleted: false,
+            });
+        }
 
-    if (!user) {
-      user = await User.create({
-        name: name || "Google User",
-        email,
-        password: null,
-        role: null,
-        profileCompleted: false,
-        courses: [],
-        uploadedNotes: []
-      });
+        // Generate JWT
+        const jwtToken = jwt.sign(
+            { id: user._id },
+            process.env.JWT_SECRET,
+            { expiresIn: "7d" }
+        );
+
+        res.json({
+            token: jwtToken,
+            user,
+        });
+
+    } catch (err) {
+        console.error("Google Auth Error:", err);
+        res.status(500).json({ message: "Google login failed" });
     }
-
-    // Create JWT Token (MATCH MIDDLEWARE)
-    const authToken = jwt.sign(
-      { id: user._id },
-      "SECRET_JWT_KEY",
-      { expiresIn: "7d" }
-    );
-
-    return res.json({
-      token: authToken,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        profileCompleted: user.profileCompleted,
-        interestField: user.interestField,
-        subInterests: user.subInterests
-      }
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(400).json({ message: "Invalid Google token" });
-  }
 };

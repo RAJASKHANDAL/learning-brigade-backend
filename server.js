@@ -41,7 +41,7 @@ app.use((req, res) => {
 
 // Routes
 app.use("/api/users", require("./routes/userRoutes"));
-app.use("/api/auth", require("./routes/googleAuthRoutes"));
+app.use("/api/google", require("./routes/googleAuthRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes"));
 app.use("/api/live", require("./routes/liveClassRoutes"));
 app.use("/api/posts", require("./routes/postsRoute"));

@@ -11,10 +11,9 @@ const app = express();
 app.use(
   cors({
     origin: [
-      "http://localhost:3000",
       "https://learning-brigade-frontend.vercel.app",
+      "http://localhost:3000"
     ],
-    methods: "GET,POST,PUT,DELETE",
     credentials: true,
   })
 );
@@ -22,7 +21,7 @@ app.use(
 
 // Allow preflight
 
-app.options("*", cors());
+//app.options("*", cors());
 
 
 // JSON Parser
@@ -33,7 +32,11 @@ app.use(express.json());
 
 // Default route
 app.get("/", (req, res) => {
-  res.send("Backend is running...");
+  res.send("Learning Brigade backend running 🚀");
+});
+// 404 fallback (instead of "*")
+app.use((req, res) => {
+  res.status(404).json({ message: "Route not found" });
 });
 
 // Routes
@@ -46,7 +49,10 @@ app.use("/api/notes", require("./routes/noteRoute"));
 
 // Static Files
 app.use("/uploads", express.static("uploads"));
-
+// TEST
+app.get("/", (req, res) => {
+  res.send("Learning Brigade backend running ✅");
+});
 // Start Server
 // Start Server
 const PORT = process.env.PORT || 5000;

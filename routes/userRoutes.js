@@ -1,10 +1,12 @@
 const express = require("express");
 const router = express.Router();
+
 const auth = require("../middleware/auth");
 const User = require("../models/user");
 
 // ===============================
 //   GET CURRENT LOGGED-IN USER
+//   GET /api/users/me
 // ===============================
 router.get("/me", auth, async (req, res) => {
   try {
@@ -22,7 +24,37 @@ router.get("/me", auth, async (req, res) => {
 });
 
 // ===============================
+//   SET ROLE AFTER GOOGLE LOGIN
+//   POST /api/users/set-role
+// ===============================
+router.post("/set-role", async (req, res) => {
+  try {
+    const { uid, role } = req.body;
+
+    if (!uid || !role) {
+      return res.status(400).json({ message: "uid and role are required" });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      uid,
+      { role },
+      { new: true }
+    ).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ success: true, user });
+  } catch (err) {
+    console.error("POST /set-role error:", err);
+    res.status(500).json({ message: "Server error while setting role" });
+  }
+});
+
+// ===============================
 //     STUDENT SETUP
+//     PUT /api/users/student/setup
 // ===============================
 router.put("/student/setup", auth, async (req, res) => {
   const { interestField, subInterests } = req.body;
@@ -46,6 +78,7 @@ router.put("/student/setup", auth, async (req, res) => {
 
 // ===============================
 //       JOIN CLASS
+//       PUT /api/users/student/join-class
 // ===============================
 router.put("/student/join-class", auth, async (req, res) => {
   const { className } = req.body;
@@ -59,8 +92,10 @@ router.put("/student/join-class", auth, async (req, res) => {
 
   res.json({ success: true, joinedClasses: user.joinedClasses });
 });
+
 // ===============================
 //   SAVE STUDENT BASIC DETAILS
+//   PUT /api/users/student/details
 // ===============================
 router.put("/student/details", auth, async (req, res) => {
   try {

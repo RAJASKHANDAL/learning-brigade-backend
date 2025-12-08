@@ -5,6 +5,9 @@ const express = require("express");
 const connectDB = require("./config/db");
 const cors = require("cors");
 
+const authRoutes = require("./routes/authRoutes");
+const googleAuthRoutes = require("./routes/googleAuthRoutes");
+const userRoutes = require("./routes/userRoutes");
 const app = express();
 
 // CORS FIX (FINAL)
@@ -40,6 +43,7 @@ app.use((req, res) => {
 });
 
 // Routes
+app.use("/api/auth", "./routes/authRoutes");
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/google", require("./routes/googleAuthRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes"));

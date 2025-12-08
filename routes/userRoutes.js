@@ -1,20 +1,13 @@
 const express = require("express");
 const router = express.Router();
-
 const auth = require("../middleware/auth");
 const User = require("../models/user");
 
-// ===============================
-//   GET CURRENT LOGGED-IN USER
-//   GET /api/users/me
-// ===============================
+// GET /api/users/me
 router.get("/me", auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     res.json({ success: true, user });
   } catch (error) {
@@ -23,10 +16,7 @@ router.get("/me", auth, async (req, res) => {
   }
 });
 
-// ===============================
-//   SET ROLE AFTER GOOGLE LOGIN
-//   POST /api/users/set-role
-// ===============================
+// POST /api/users/set-role  (called right after Google login)
 router.post("/set-role", async (req, res) => {
   try {
     const { uid, role } = req.body;
@@ -37,25 +27,20 @@ router.post("/set-role", async (req, res) => {
 
     const user = await User.findByIdAndUpdate(
       uid,
-      { role },
+      { role, profileCompleted: false },
       { new: true }
-    ).select("-password");
+    );
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     res.json({ success: true, user });
   } catch (err) {
-    console.error("POST /set-role error:", err);
-    res.status(500).json({ message: "Server error while setting role" });
+    console.error("set-role error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-// ===============================
-//     STUDENT SETUP
-//     PUT /api/users/student/setup
-// ===============================
+// PUT /api/users/student/setup
 router.put("/student/setup", auth, async (req, res) => {
   const { interestField, subInterests } = req.body;
 
@@ -76,10 +61,7 @@ router.put("/student/setup", auth, async (req, res) => {
   res.json({ success: true, user });
 });
 
-// ===============================
-//       JOIN CLASS
-//       PUT /api/users/student/join-class
-// ===============================
+// PUT /api/users/student/join-class
 router.put("/student/join-class", auth, async (req, res) => {
   const { className } = req.body;
 
@@ -93,10 +75,7 @@ router.put("/student/join-class", auth, async (req, res) => {
   res.json({ success: true, joinedClasses: user.joinedClasses });
 });
 
-// ===============================
-//   SAVE STUDENT BASIC DETAILS
-//   PUT /api/users/student/details
-// ===============================
+// PUT /api/users/student/details
 router.put("/student/details", auth, async (req, res) => {
   try {
     const { studentType, name, age, mobile, studentEmail } = req.body;
@@ -115,7 +94,7 @@ router.put("/student/details", auth, async (req, res) => {
 
     res.json({ success: true, user });
   } catch (err) {
-    console.log("Details save error:", err);
+    console.error("Details save error:", err);
     res.status(500).json({ message: "Server error while saving details" });
   }
 });

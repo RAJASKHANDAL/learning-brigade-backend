@@ -1,16 +1,20 @@
-require("dotenv").config();
 const admin = require("firebase-admin");
 
-let serviceAccount ;
+let serviceAccount;
 
-//If SERVICE_ACCOUNT exists → running on Render / production
 if (process.env.SERVICE_ACCOUNT) {
+  // Render / production
   serviceAccount = JSON.parse(process.env.SERVICE_ACCOUNT);
+} else {
+  // Local dev only – keep this file out of git
+  // path relative to THIS file
+  serviceAccount = require("./serviceAccountKey.json");
 }
 
-// Initialize Firebase Admin
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+}
 
 module.exports = admin;

@@ -1,26 +1,20 @@
 const jwt = require("jsonwebtoken");
-const User = require("../models/user");
 
-module.exports = async (req, res, next) => {
+module.exports = (req, res, next) => {
+  const header = req.headers.authorization;
+
+  if (!header || !header.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "No token, authorization denied" });
+  }
+
+  const token = header.split(" ")[1];
+
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(401).json({ message: "No authorization header" });
-    }
-
-    const token = authHeader.split(" ")[1]; // "Bearer <token>"
-    if (!token) return res.status(401).json({ message: "Token missing" });
-
-    // VERIFY TOKEN WITH THE SAME SECRET YOU USED IN LOGIN
-    const decoded = jwt.verify(token, "SECRET_JWT_KEY");
-
-    const user = await User.findById(decoded.id).select("-password");
-    if (!user) return res.status(401).json({ message: "User not found" });
-
-    req.user = user;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = { id: decoded.id };
     next();
   } catch (err) {
-    console.log("AUTH ERROR:", err);
-    return res.status(401).json({ message: "Invalid token" });
+    console.error("Auth middleware error:", err);
+    return res.status(401).json({ message: "Token is not valid" });
   }
 };

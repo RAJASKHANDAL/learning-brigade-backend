@@ -1,10 +1,13 @@
-// backend/routes/googleAuthRoutes.js
 const express = require("express");
-const { googleAuth } = require("../controllers/googleAuthController");
-
 const router = express.Router();
+const { googleAuthController } = require("../controllers/googleAuthController");
 
-// GOOGLE LOGIN ROUTE
-router.post("/google", googleAuth);
+// POST /api/auth/google
+router.post("/google", googleAuthController);
+
+// Test route
+router.get("/google", (req, res) => {
+  res.json({ message: "POST only" });
+});
 
 module.exports = router;

@@ -1,11 +1,24 @@
+// backend/controllers/authController.js
+
+const { OAuth2Client } = require("google-auth-library");
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 
-const createToken = (userId) =>
-  jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
-  });
+// Create JWT with full user data
+const createToken = (user) =>
+  jwt.sign(
+    {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
 
 exports.signup = async (req, res) => {
   try {
@@ -30,7 +43,7 @@ exports.signup = async (req, res) => {
       profileCompleted: false,
     });
 
-    const token = createToken(user._id);
+    const token = createToken(user);
     res.json({ token, user });
   } catch (err) {
     console.error("Signup error:", err);
@@ -56,10 +69,47 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const token = createToken(user._id);
+    const token = createToken(user);
     res.json({ token, user });
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.googleAuthController = async (req, res) => {
+  try {
+    const { credential } = req.body;
+    if (!credential) {
+      return res.status(400).json({ message: "Missing Google token" });
+    }
+
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+
+    const email = payload.email;
+    const name = payload.name;
+    const picture = payload.picture;
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = await User.create({
+        name,
+        email,
+        profileImage: picture,
+        role: "student", // default role for Google login
+      });
+    }
+
+    const token = createToken(user);
+    res.json({ token, user });
+  } catch (err) {
+    console.error("Google Auth Error:", err);
+    res.status(500).json({ message: "Google login failed" });
   }
 };

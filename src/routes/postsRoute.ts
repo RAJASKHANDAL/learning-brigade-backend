@@ -1,0 +1,40 @@
+import { Router } from "express";
+import { Post } from "../models/Post";
+import { protect } from "../middleware/protect";
+
+const router = Router();
+
+// Create a new post
+router.post("/", protect, async (req, res) => {
+  try {
+    const { content } = req.body;
+
+    if (!content || content.trim() === "") {
+      return res.status(400).json({ error: "Post content is required" });
+    }
+
+    const newPost = await Post.create({
+      teacherId: req.user!.id,
+      teacherName: req.user!.name,
+      content,
+    });
+
+    res.json({ success: true, post: newPost });
+  } catch (err) {
+    console.error("Post Create Error:", err);
+    res.status(500).json({ error: "Server error while creating post" });
+  }
+});
+
+// Get all posts
+router.get("/", async (req, res) => {
+  try {
+    const posts = await Post.find().sort({ createdAt: -1 });
+    res.json({ success: true, posts });
+  } catch (err) {
+    console.error("Fetch Posts Error:", err);
+    res.status(500).json({ error: "Server error while fetching posts" });
+  }
+});
+
+export default router;

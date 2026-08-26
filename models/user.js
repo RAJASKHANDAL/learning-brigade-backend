@@ -17,8 +17,12 @@ const userSchema = new mongoose.Schema(
     interestField: { type: String, default: null },          // e.g. "Web Development"
     subInterests: { type: [String], default: [] },           // e.g. ["React", "Backend"]
     joinedClasses: { type: [String], default: [] },          // list of class names
+    studentType: { type: String, default: null },
+    age: { type: String, default: null },
+    mobile: { type: String, default: null },
 
-    // Other fields you already had...
+    profileImage: { type: String, default: null },
+    profileCompleted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

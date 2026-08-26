@@ -7,7 +7,7 @@ exports.uploadNote = async (req, res) => {
     const newNote = await Notes.create({
       userId: req.user._id,
       filename: req.file.originalname,
-      fileURL: `http://localhost:5000/uploads/${req.file.filename}`,
+      fileURL: `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`,
       uploadedAt: new Date()
     });
 

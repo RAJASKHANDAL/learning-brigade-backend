@@ -36,6 +36,7 @@ app.use("/api/notifications", require("./routes/notificationRoutes"));
 app.use("/api/live", require("./routes/liveClassRoutes"));
 app.use("/api/posts", require("./routes/postsRoute"));
 app.use("/api/notes", require("./routes/noteRoute"));
+app.use("/api/upload", require("./routes/uploadRoutes"));
 
 app.use("/uploads", express.static("uploads"));
 

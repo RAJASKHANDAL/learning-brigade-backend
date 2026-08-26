@@ -1,8 +1,6 @@
-const { OAuth2Client } = require("google-auth-library");
 const jwt = require("jsonwebtoken");
+const admin = require("../config/firebaseAdmin");
 const User = require("../models/user");
-
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 exports.googleAuthController = async (req, res) => {
   try {
@@ -12,13 +10,8 @@ exports.googleAuthController = async (req, res) => {
       return res.status(400).json({ message: "Missing Google token" });
     }
 
-    const ticket = await client.verifyIdToken({
-      idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-
-    const payload = ticket.getPayload();
-    const { email, name, picture } = payload;
+    const decoded = await admin.auth().verifyIdToken(credential);
+    const { email, name, picture } = decoded;
 
     let user = await User.findOne({ email });
 
@@ -26,9 +19,11 @@ exports.googleAuthController = async (req, res) => {
       user = await User.create({ name, email, profileImage: picture });
     }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    const token = jwt.sign(
+      { id: user._id, name: user.name, email: user.email, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
     res.json({ token, user });
   } catch (err) {

@@ -1,12 +1,16 @@
 const express = require("express");
 const router = express.Router();
 const LiveClass = require("../models/LiveClass");
-const protect = require("../middleware/auth");
+const protect = require("../middleware/authMiddleware");
 
 // Start a live class
 router.post("/start", protect, async (req, res) => {
   try {
-    const { title, description } = req.body;
+    const { title, description, roomId } = req.body;
+
+    if (!roomId) {
+      return res.status(400).json({ error: "roomId is required" });
+    }
 
     // Make all other classes not live
     await LiveClass.updateMany({}, { isLive: false });
@@ -14,6 +18,7 @@ router.post("/start", protect, async (req, res) => {
     const liveClass = await LiveClass.create({
       title,
       description,
+      roomId,
       teacherId: req.user._id,
       teacherName: req.user.name,
       isLive: true,

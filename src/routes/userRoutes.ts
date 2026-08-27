@@ -8,6 +8,21 @@ import { setRoleSchema, studentSetupSchema, joinClassSchema, studentDetailsSchem
 
 const router = Router();
 
+// GET /api/users?role=teacher — directory listing, safe field allowlist only
+// (never email/mobile/password), auth-protected since this is in-app data.
+router.get(
+  "/",
+  protect,
+  asyncHandler(async (req, res) => {
+    const { role } = req.query;
+    const filter = typeof role === "string" ? { role } : {};
+
+    const users = await User.find(filter).select("name interestField profileImage role");
+
+    res.json({ success: true, users });
+  })
+);
+
 // GET /api/users/me
 router.get(
   "/me",

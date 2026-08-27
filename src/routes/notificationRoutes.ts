@@ -1,40 +1,41 @@
 import { Router } from "express";
 import { Notification } from "../models/Notification";
+import { validateBody } from "../middleware/validate";
+import { createNotificationSchema } from "../schemas";
+import { asyncHandler } from "../middleware/asyncHandler";
 
 const router = Router();
 
 // Get notifications for a user
-router.get("/:userId", async (req, res) => {
-  try {
+router.get(
+  "/:userId",
+  asyncHandler(async (req, res) => {
     const notifications = await Notification.find({ userId: req.params.userId }).sort({
       createdAt: -1,
     });
 
     res.json({ notifications });
-  } catch (err) {
-    res.status(500).json({ message: "Error loading notifications" });
-  }
-});
+  })
+);
 
 // Mark notification as seen
-router.post("/seen/:id", async (req, res) => {
-  try {
+router.post(
+  "/seen/:id",
+  asyncHandler(async (req, res) => {
     await Notification.findByIdAndUpdate(req.params.id, { seen: true });
     res.json({ message: "Marked as seen" });
-  } catch (err) {
-    res.status(500).json({ message: "Error updating notification" });
-  }
-});
+  })
+);
 
 // Create notification
-router.post("/", async (req, res) => {
-  try {
+router.post(
+  "/",
+  validateBody(createNotificationSchema),
+  asyncHandler(async (req, res) => {
     const { userId, message, link } = req.body;
     await Notification.create({ userId, message, link });
     res.json({ message: "Notification created" });
-  } catch (err) {
-    res.status(500).json({ message: "Error creating notification" });
-  }
-});
+  })
+);
 
 export default router;

@@ -12,6 +12,8 @@ const envSchema = z.object({
   CORS_ORIGINS: z
     .string()
     .default("https://learning-brigade-frontend.vercel.app,http://localhost:3000"),
+  FIREBASE_STORAGE_BUCKET: z.string().default("learning-brigade.firebasestorage.app"),
+  MAX_UPLOAD_SIZE_MB: z.coerce.number().default(10),
 });
 
 function loadEnv() {

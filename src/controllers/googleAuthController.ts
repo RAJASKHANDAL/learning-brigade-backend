@@ -8,10 +8,6 @@ export async function googleAuthController(req: Request, res: Response) {
   try {
     const { credential } = req.body;
 
-    if (!credential) {
-      return res.status(400).json({ message: "Missing Google token" });
-    }
-
     const decoded = await admin.auth().verifyIdToken(credential);
     const { email, name, picture } = decoded;
 

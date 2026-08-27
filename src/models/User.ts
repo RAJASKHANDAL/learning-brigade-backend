@@ -25,6 +25,15 @@ const userSchema = new Schema(
   { timestamps: true }
 );
 
+// Belt-and-braces: strip the password hash from every JSON response,
+// regardless of whether the call site remembered .select("-password").
+userSchema.set("toJSON", {
+  transform: (_doc, ret) => {
+    delete ret.password;
+    return ret;
+  },
+});
+
 export type IUser = InferSchemaType<typeof userSchema>;
 export type UserDocument = HydratedDocument<IUser>;
 
